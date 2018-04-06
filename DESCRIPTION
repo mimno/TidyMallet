@@ -1,0 +1,15 @@
+Package: TidyMallet
+Type: Package
+Title: What the Package Does in One 'Title Case' Line
+Version: 1.0
+Date: 2018-04-05
+Author: Your Name
+Maintainer: Your Name <your@email.com>
+Description: One paragraph description of what the package does as
+       one or more full sentences.
+License: GPL (>= 2)
+Imports: Rcpp (>= 0.12.16), tidyverse, tidytext
+LinkingTo: Rcpp
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr

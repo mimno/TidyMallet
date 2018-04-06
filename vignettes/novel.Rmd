@@ -1,0 +1,45 @@
+---
+title: "Vignette Title"
+author: "Vignette Author"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+library(tidyverse)
+library(tidytext)
+library(janeaustenr)
+library(TidyMallet)
+
+## Load documents in tidy format
+chunked_text <- data_frame(x=janeaustenr::emma) %>% 
+  group_by(DocID = ceiling(row_number() / 10)) %>%
+  summarize(Text = str_c(x, collapse = " "))
+
+tokens_df <- chunked_text %>% unnest_tokens(word, Text) %>% filter(!is.na(word))
+
+## Find the 100 most frequent words and remove them
+word_counts <- tokens_df %>% count(word, sort=TRUE) %>% mutate(cumsum = cumsum(n)) %>% mutate(percent = cumsum / nrow(tokens_df))
+stop_words <- word_counts %>% slice(1:100) %>% select(word)
+tokens_df <- tokens_df %>% anti_join(stop_words)
+
+## Assign random topics and set document grouping
+n_topics <- 30
+tokens_df <- tokens_df %>% random_topics(n_topics) %>% group_by(DocID)
+
+## Initialize a model, cache numeric word ids, sample a few sweeps
+topic_model <- TidyMallet(tokens_df, num.topics = n_topics)
+tokens_df <- add_word_ids(tokens_df, topic_model)
+tokens_df <- sample_topics(tokens_df, topic_model)
+
+
+```
